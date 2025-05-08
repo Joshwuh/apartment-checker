@@ -39,6 +39,8 @@ def send_email(subject, body):
 
 def check_units():
     print(f"🕒 Script started at {datetime.now().strftime('%Y-%m-%d %I:%M %p')}")
+    print(f"Layouts found: {len(layouts)}")
+    print(f"Units found: {len(units)}")
 
     response = requests.get(url)
     data = response.json()
