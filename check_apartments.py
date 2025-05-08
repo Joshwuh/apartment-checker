@@ -82,14 +82,17 @@ def check_units():
         send_sms(message)
         send_email("Apartment Alert", message)
 
-    log_line = f"🕒 {datetime.now().strftime('%Y-%m-%d %I:%M %p')} — "
+    log_time = datetime.now().strftime('%Y-%m-%d %I:%M %p')
+    log_line = f"### 🕒 {log_time}\n"
 
     if available_matches:
-        log_line += "✅ Available: " + ", ".join(available_matches)
+        log_line += "✅ **Available Floorplans:**\n"
+        for match in available_matches:
+            log_line += f"- {match}\n"
     else:
-        log_line += "🚫 No matching floorplans available."
+        log_line += "🚫 *No matching floorplans available.*\n"
 
-    log_line += "\n"
+    log_line += "\n---\n\n"
 
     with open("run-history.md", "a") as log_file:
         log_file.write(log_line)
