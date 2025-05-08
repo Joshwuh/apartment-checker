@@ -62,7 +62,7 @@ def check_units():
     }
 
     # 🔧 FAKE UNIT INJECTION FOR TESTING
-    available_names.add("This is a test for Sedona")
+    # available_names.add("This is a test for Sedona")
 
 
     available_matches = []
