@@ -61,6 +61,10 @@ def check_units():
         if layout_id in layout_lookup
     }
 
+    # 🔧 FAKE UNIT INJECTION FOR TESTING
+    available_names.add("This is a test for Sedona")
+
+
     available_matches = []
     for target in floorplans_to_watch:
         matches = [
