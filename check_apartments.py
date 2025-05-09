@@ -40,7 +40,7 @@ def send_email(subject, body):
         smtp.send_message(msg)
 
 def check_units():
-    print(f"🕒 Script started at {datetime.now(ZoneInfo("America/New_York")).strftime('%Y-%m-%d %I:%M %p')}")
+    print(f"🕒 Script started at {datetime.now(ZoneInfo('America/New_York')).strftime('%Y-%m-%d %I:%M %p')}")
 
     response = requests.get(url)
     data = response.json()
@@ -76,7 +76,7 @@ def check_units():
         available_matches.extend(matches)
 
     if available_matches:
-        timestamp = log_time = datetime.now(ZoneInfo("America/New_York")).strftime('%Y-%m-%d %I:%M %p')
+        timestamp = log_time = datetime.now(ZoneInfo('America/New_York')).strftime('%Y-%m-%d %I:%M %p')
         message = f"✅ {timestamp} — These floorplans are NOW AVAILABLE:\n" + \
                   "\n".join(f"• {name}" for name in available_matches)
 
@@ -84,7 +84,7 @@ def check_units():
         send_sms(message)
         send_email("Apartment Alert", message)
 
-    log_time = log_time = datetime.now(ZoneInfo("America/New_York")).strftime('%Y-%m-%d %I:%M %p')
+    log_time = log_time = datetime.now(ZoneInfo('America/New_York')).strftime('%Y-%m-%d %I:%M %p')
     log_line = f"### 🕒 {log_time}\n"
 
     if available_matches:
