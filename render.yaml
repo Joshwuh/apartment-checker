@@ -1,0 +1,7 @@
+services:
+  - type: cron
+    name: apartment-checker
+    schedule: "*/5 * * * *"  # Every 5 minutes
+    env: python
+    buildCommand: ""
+    startCommand: python check_apartments.py
