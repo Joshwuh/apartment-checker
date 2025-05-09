@@ -78,9 +78,14 @@ with open(CACHE_FILE, "w") as f:
 
 # --- STEP 5: Write to Google Sheets ---
 if logs_to_write:
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
+    import gspread
+    from google.oauth2.service_account import Credentials
+
+    scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+    creds = Credentials.from_service_account_file("creds.json", scopes=scope)
     client = gspread.authorize(creds)
-    sheet = client.open(SHEET_NAME)
-    worksheet = sheet.worksheet(SHEET_TAB)
+
+    # Open the spreadsheet by ID
+    sheet = client.open_by_key("1I9wy0INtMmbH6-bjT94WV-GJR47HVBhLDvHmLhNN7rE")
+    worksheet = sheet.worksheet("Playfair Logs")
     worksheet.append_rows(logs_to_write)
