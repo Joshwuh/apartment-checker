@@ -21,6 +21,12 @@ jobs:
       - name: Install dependencies
         run: |
           pip install requests twilio
+          
+      - name: Pull latest run-history.md
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git pull origin main --allow-unrelated-histories || echo "No prior log to merge"
 
       - name: Run apartment checker
         env:
