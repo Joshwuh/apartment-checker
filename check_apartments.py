@@ -38,14 +38,20 @@ url = 'https://doorway-api.knockrentals.com/v1/property/2017805/units'
 LAST_AVAILABLE_FILE = "last_available.json"
 
 def load_last_available():
-    if os.path.exists(LAST_AVAILABLE_FILE):
+    try:
         with open(LAST_AVAILABLE_FILE, 'r') as f:
-            return set(json.load(f))
-    return set()
+            data = json.load(f)
+            return set(data.get("available", []))
+    except (json.JSONDecodeError, FileNotFoundError):
+        return set()
 
 def save_current_available(current):
+    save_data = {
+        "cleared_at": datetime.now(ZoneInfo("America/New_York")).strftime('%Y-%m-%d %I:%M %p'),
+        "available": list(current)
+    }
     with open(LAST_AVAILABLE_FILE, 'w') as f:
-        json.dump(list(current), f)
+        json.dump(save_data, f, indent=2)
 
 def send_sms(message):
     client = Client(account_sid, auth_token)
@@ -87,7 +93,6 @@ def check_units():
     last_set = load_last_available()
 
     if current_set != last_set:
-        # Only alert + log if changed
         save_current_available(current_set)
 
         if current_set:
