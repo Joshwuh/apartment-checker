@@ -7,23 +7,28 @@ import os
 from zoneinfo import ZoneInfo
 import base64
 import json
-import gspread
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
+import gspread
 
-# Decode and authorize Google Sheets API
+# Decode and load service account info
 creds_json = base64.b64decode(os.environ['GOOGLE_CREDS_B64']).decode('utf-8')
 creds_dict = json.loads(creds_json)
-# creds = service_account.Credentials.from_service_account_info(creds_dict)
+
+# Create credentials with required scope
 scoped_creds = service_account.Credentials.from_service_account_info(
     creds_dict,
-    scopes=['https://www.googleapis.com/auth/spreadsheets']
+    scopes=["https://www.googleapis.com/auth/spreadsheets"]
 )
+
+# Authorize gspread with scoped credentials
 gc = gspread.authorize(scoped_creds)
 
+# Open the correct sheet
 spreadsheet_name = 'Apartment Checker Logs - The Seasons'
 sheet_name = 'Sheet1'
 worksheet = gc.open(spreadsheet_name).worksheet(sheet_name)
+
 
 # Load secrets from environment variables
 account_sid = os.environ['ACCOUNT_SID']
