@@ -113,13 +113,13 @@ def check_units():
             status_msg = "🔔 NEW availability: " + ", ".join(current_set)
         else:
             print(f"{timestamp} — 🚫 All floorplans now unavailable.")
-            status_msg = "🚫 No matching floorplans"
+            status_msg = "🚫 Nothing Available"
     else:
         print(f"{timestamp} — No change in availability.")
         if current_set:
             status_msg = "⏳ Still available: " + ", ".join(current_set)
         else:
-            status_msg = "🚫 No matching floorplans"
+            status_msg = "🚫 Nothing Available"
 
     worksheet.append_row([timestamp, status_msg])
 
