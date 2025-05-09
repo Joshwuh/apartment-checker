@@ -10,6 +10,17 @@ import json
 from google.oauth2 import service_account
 import gspread
 
+# Twilio config
+account_sid = os.environ['ACCOUNT_SID']
+auth_token = os.environ['AUTH_TOKEN']
+twilio_number = os.environ['TWILIO_NUMBER']
+your_number = os.environ['YOUR_NUMBER']
+
+#Email config
+email_from = os.environ['EMAIL_FROM']
+email_to = os.environ['EMAIL_TO'].split(',')
+email_password = os.environ['EMAIL_PASSWORD']
+
 # Load and authorize Google credentials
 creds_json = base64.b64decode(os.environ['GOOGLE_CREDS_B64']).decode('utf-8')
 creds_dict = json.loads(creds_json)
@@ -23,40 +34,12 @@ creds = service_account.Credentials.from_service_account_info(
 gc = gspread.authorize(creds)
 worksheet = gc.open_by_key('1I9wy0INtMmbH6-bjT94WV-GJR47HVBhLDvHmLhNN7rE').worksheet('Sheet1')
 
-# Twilio and Email config
-account_sid = os.environ['ACCOUNT_SID']
-auth_token = os.environ['AUTH_TOKEN']
-twilio_number = os.environ['TWILIO_NUMBER']
-your_number = os.environ['YOUR_NUMBER']
-email_from = os.environ['EMAIL_FROM']
-email_to = os.environ['EMAIL_TO'].split(',')
-email_password = os.environ['EMAIL_PASSWORD']
-
-# Floorplans and Knock API
-floorplans_to_watch = ['Sedona', 'Stockbridge', 'Telluride', 'Washington']
+# Knock API
 url = 'https://doorway-api.knockrentals.com/v1/property/2017805/units'
+
+floorplans_to_watch = ['Sedona', 'Stockbridge', 'Telluride', 'Washington']
+
 LAST_AVAILABLE_FILE = "last_available.json"
-
-def load_last_available():
-    if os.path.exists(LAST_AVAILABLE_FILE):
-        with open(LAST_AVAILABLE_FILE, 'r') as f:
-            try:
-                data = json.load(f)
-                if isinstance(data, dict):
-                    return set(data.get("available", []))
-                elif isinstance(data, list):
-                    return set(data)
-            except json.JSONDecodeError:
-                return set()
-    return set()
-
-def save_current_available(current):
-    save_data = {
-        "cleared_at": datetime.now(ZoneInfo("America/New_York")).strftime('%Y-%m-%d %I:%M %p'),
-        "available": list(current)
-    }
-    with open(LAST_AVAILABLE_FILE, 'w') as f:
-        json.dump(save_data, f, indent=2)
 
 def send_sms(message):
     client = Client(account_sid, auth_token)
@@ -71,6 +54,27 @@ def send_email(subject, body):
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
         smtp.login(email_from, email_password)
         smtp.send_message(msg)
+
+def save_current_available(current):
+    save_data = {
+        "cleared_at": datetime.now(ZoneInfo("America/New_York")).strftime('%Y-%m-%d %I:%M %p'),
+        "available": list(current)
+    }
+    with open(LAST_AVAILABLE_FILE, 'w') as f:
+        json.dump(save_data, f, indent=2)
+
+def load_last_available():
+    if os.path.exists(LAST_AVAILABLE_FILE):
+        with open(LAST_AVAILABLE_FILE, 'r') as f:
+            try:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return set(data.get("available", []))
+                elif isinstance(data, list):
+                    return set(data)
+            except json.JSONDecodeError:
+                return set()
+    return set()
 
 def check_units():
     now = datetime.now(ZoneInfo('America/New_York'))
@@ -97,23 +101,25 @@ def check_units():
     current_set = set(available_matches)
     last_set = load_last_available()
 
-
     if current_set != last_set:
         save_current_available(current_set)
 
         if current_set:
             message = f"✅ {timestamp} — These floorplans are NOW AVAILABLE:\n" + \
-                      "\n".join(f"• {name}" for name in current_set)
+                    "\n".join(f"• {name}" for name in current_set)
             print(message)
             send_sms(message)
             send_email("Apartment Alert", message)
-            status_msg = "Available: " + ", ".join(current_set)
+            status_msg = "🔔 NEW availability: " + ", ".join(current_set)
         else:
             print(f"{timestamp} — 🚫 All floorplans now unavailable.")
-            status_msg = "No matching floorplans"
+            status_msg = "🚫 No matching floorplans"
     else:
         print(f"{timestamp} — No change in availability.")
-        status_msg = "No change"
+        if current_set:
+            status_msg = "⏳ Still available: " + ", ".join(current_set)
+        else:
+            status_msg = "🚫 No matching floorplans"
 
     worksheet.append_row([timestamp, status_msg])
 
