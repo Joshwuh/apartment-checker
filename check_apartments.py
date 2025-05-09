@@ -38,12 +38,17 @@ url = 'https://doorway-api.knockrentals.com/v1/property/2017805/units'
 LAST_AVAILABLE_FILE = "last_available.json"
 
 def load_last_available():
-    try:
+    if os.path.exists(LAST_AVAILABLE_FILE):
         with open(LAST_AVAILABLE_FILE, 'r') as f:
-            data = json.load(f)
-            return set(data.get("available", []))
-    except (json.JSONDecodeError, FileNotFoundError):
-        return set()
+            try:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return set(data.get("available", []))
+                elif isinstance(data, list):
+                    return set(data)
+            except json.JSONDecodeError:
+                return set()
+    return set()
 
 def save_current_available(current):
     save_data = {
