@@ -7,9 +7,9 @@ import os
 from zoneinfo import ZoneInfo
 import base64
 import json
-from google.oauth2 import service_account
 import gspread
-from google.auth.transport.requests import Request  # put this with your imports
+from google.oauth2 import service_account
+from google.auth.transport.requests import Request
 
 # Decode and authorize Google Sheets API
 creds_json = base64.b64decode(os.environ['GOOGLE_CREDS_B64']).decode('utf-8')
@@ -22,7 +22,7 @@ spreadsheet_name = 'Apartment Checker Logs - The Seasons'
 sheet_name = 'Sheet1'
 worksheet = gc.open(spreadsheet_name).worksheet(sheet_name)
 
-# 🔐 Load other environment secrets
+# Load secrets from environment variables
 account_sid = os.environ['ACCOUNT_SID']
 auth_token = os.environ['AUTH_TOKEN']
 twilio_number = os.environ['TWILIO_NUMBER']
@@ -31,11 +31,9 @@ email_from = os.environ['EMAIL_FROM']
 email_to = os.environ['EMAIL_TO'].split(',')
 email_password = os.environ['EMAIL_PASSWORD']
 
-# 🏢 Apartment settings
 floorplans_to_watch = ['Sedona', 'Stockbridge', 'Telluride', 'Washington']
 url = 'https://doorway-api.knockrentals.com/v1/property/2017805/units'
 
-# 📱 Send SMS via Twilio
 def send_sms(message):
     client = Client(account_sid, auth_token)
     client.messages.create(
@@ -44,7 +42,6 @@ def send_sms(message):
         to=your_number
     )
 
-# 📧 Send Email
 def send_email(subject, body):
     msg = EmailMessage()
     msg.set_content(body)
@@ -56,16 +53,16 @@ def send_email(subject, body):
         smtp.login(email_from, email_password)
         smtp.send_message(msg)
 
-# ✅ Main logic
 def check_units():
-    log_time = datetime.now(ZoneInfo('America/New_York')).strftime('%Y-%m-%d %I:%M %p')
-    print(f"🕒 Script started at {log_time}")
+    now = datetime.now(ZoneInfo('America/New_York'))
+    print(f"🕒 Script started at {now.strftime('%Y-%m-%d %I:%M %p')}")
 
     response = requests.get(url)
     data = response.json()
 
     layouts = data['units_data']['layouts']
     units = data['units_data']['units']
+
     print(f"Layouts found: {len(layouts)}")
     print(f"Units found: {len(units)}")
 
@@ -89,30 +86,26 @@ def check_units():
         ]
         available_matches.extend(matches)
 
-    # Send alerts if any are available
-    if available_matches:
-        message = f"✅ {log_time} — These floorplans are NOW AVAILABLE:\n" + \
-                  "\n".join(f"• {name}" for name in available_matches)
+    timestamp = now.strftime("%Y-%m-%d %I:%M %p")
+    log_line = f"### 🕒 {timestamp}\n"
 
+    if available_matches:
+        message = f"✅ {timestamp} — These floorplans are NOW AVAILABLE:\n" + \
+                  "\n".join(f"• {name}" for name in available_matches)
         print(message)
         send_sms(message)
         send_email("Apartment Alert", message)
-
-    # Markdown log
-    log_line = f"### 🕒 {log_time}\n"
-    if available_matches:
-        log_line += "✅ **Available Floorplans:**\n"
-        for match in available_matches:
-            log_line += f"- {match}\n"
+        log_line += "✅ **Available Floorplans:**\n" + "".join(f"- {match}\n" for match in available_matches)
+        sheet_status = "Available: " + ", ".join(available_matches)
     else:
         log_line += "🚫 *No matching floorplans available.*\n"
+        sheet_status = "No matching floorplans"
+
     log_line += "\n---\n\n"
 
     with open("run-history.md", "a") as log_file:
         log_file.write(log_line)
 
-    # Google Sheet log
-    status = "Available: " + ", ".join(available_matches) if available_matches else "No matching floorplans"
-    worksheet.append_row([log_time, status])
+    worksheet.append_row([timestamp, sheet_status])
 
 check_units()
