@@ -1,0 +1,49 @@
+# poke GitHub to re-register cron
+name: Apartment Availability Checker
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes
+  workflow_dispatch:       # Manual trigger
+
+jobs:
+  run-checker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests twilio
+
+      - name: Pull latest run-history.md
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git pull origin main --allow-unrelated-histories || echo "No prior log to merge"
+
+      - name: Run apartment checker
+        env:
+          ACCOUNT_SID: ${{ secrets.ACCOUNT_SID }}
+          AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
+          TWILIO_NUMBER: ${{ secrets.TWILIO_NUMBER }}
+          YOUR_NUMBER: ${{ secrets.YOUR_NUMBER }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        run: python check_apartments.py
+
+      - name: Commit run history
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add run-history.md
+          git commit -m "Log run at $(date +'%Y-%m-%d %I:%M %p')" || echo "No changes to commit"
+          git push
