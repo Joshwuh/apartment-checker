@@ -6,21 +6,29 @@ import requests
 from bs4 import BeautifulSoup
 import os
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 
 # --- CONFIGURATION ---
 URL = "https://theplayfaircarmel.com/floorplans/"
 FLOORPLANS_TO_TRACK = ["The Brighton", "The Canterbury", "The Capelle", "The Windsor", "The Edinburgh"]
 CACHE_FILE = "availability_cache.json"
-SHEET_NAME = "Apartment Availability"
+SHEET_ID = "1I9wy0INtMmbH6-bjT94WV-GJR47HVBhLDvHmLhNN7rE"  # Replace this with your actual Sheet ID
 SHEET_TAB = "Playfair Logs"
 
 # --- TIMEZONE ---
 TZ = ZoneInfo("America/New_York")
 now = datetime.now(TZ)
 
+print("▶️ Starting Playfair availability check...")
+
 # --- STEP 1: Scrape current availability ---
-response = requests.get(URL)
+try:
+    response = requests.get(URL)
+    response.raise_for_status()
+except Exception as e:
+    print("❌ Failed to fetch floorplans page:", e)
+    exit(1)
+
 soup = BeautifulSoup(response.text, "html.parser")
 cards = soup.select("a.jd-fp-floorplan-card")
 
@@ -33,6 +41,8 @@ for card in cards:
             available_now = card.select_one(".jd-fp-flag p")
             is_available = available_now and "Available Now" in available_now.text
             current_state[name] = is_available
+
+print(f"ℹ️ Scraped floorplans: {list(current_state.items())}")
 
 # --- STEP 2: Load cache ---
 if os.path.exists(CACHE_FILE):
@@ -54,6 +64,8 @@ for name, is_now_available in current_state.items():
         available_str = available_since if available_since else ""
         unavailable_str = ""
         duration_str = ""
+
+        print(f"🔄 Change detected for {name}: {'available' if is_now_available else 'unavailable'}")
 
         if is_now_available:
             # Became available
@@ -78,14 +90,17 @@ with open(CACHE_FILE, "w") as f:
 
 # --- STEP 5: Write to Google Sheets ---
 if logs_to_write:
-    import gspread
-    from google.oauth2.service_account import Credentials
-
+    print("⏳ Authenticating with Google Sheets...")
     scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     creds = Credentials.from_service_account_file("creds.json", scopes=scope)
     client = gspread.authorize(creds)
 
-    # Open the spreadsheet by ID
-    sheet = client.open_by_key("1I9wy0INtMmbH6-bjT94WV-GJR47HVBhLDvHmLhNN7rE")
-    worksheet = sheet.worksheet("Playfair Logs")
+    print("✅ Auth successful, opening sheet...")
+    sheet = client.open_by_key(SHEET_ID)
+    worksheet = sheet.worksheet(SHEET_TAB)
+
+    print(f"📤 Appending {len(logs_to_write)} row(s) to Playfair Logs...")
     worksheet.append_rows(logs_to_write)
+    print("✅ Rows written to Google Sheet.")
+else:
+    print("✅ No availability changes to log.")
