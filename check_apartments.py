@@ -25,9 +25,9 @@ scoped_creds = service_account.Credentials.from_service_account_info(
 gc = gspread.authorize(scoped_creds)
 
 # Open the correct sheet
-spreadsheet_name = 'Apartment Checker Logs - The Seasons'
+spreadsheet_id = '1I9wy0INtMmbH6-bjT94WV-GJR47HVBhLDvHmLhNN7rE'
 sheet_name = 'Sheet1'
-worksheet = gc.open(spreadsheet_name).worksheet(sheet_name)
+worksheet = gc.open_by_key(spreadsheet_id).worksheet(sheet_name)
 
 
 # Load secrets from environment variables
