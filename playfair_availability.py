@@ -22,10 +22,11 @@ now = datetime.now(TZ)
 print("▶️ Starting Playfair availability check...")
 
 # --- STEP 1: Scrape current availability ---
-try:
-    headers = {
+headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
-    }
+}
+
+try:
     response = requests.get(URL, headers=headers)
     response.raise_for_status()
 except Exception as e:
@@ -33,10 +34,6 @@ except Exception as e:
     exit(1)
 
 soup = BeautifulSoup(response.text, "html.parser")
-
-print("🧪 Page snippet:")
-print(soup.prettify()[:1000])  # Only show the first 1000 chars
-
 cards = soup.select("a.jd-fp-floorplan-card")
 
 current_state = {}
@@ -75,11 +72,9 @@ for name, is_now_available in current_state.items():
         print(f"🔄 Change detected for {name}: {'available' if is_now_available else 'unavailable'}")
 
         if is_now_available:
-            # Became available
             cache[name] = {"available": True, "available_since": now.isoformat()}
             logs_to_write.append([name, "available", timestamp, timestamp, "", ""])
         else:
-            # Became unavailable
             if available_since:
                 then = datetime.fromisoformat(available_since)
                 delta = now - then
