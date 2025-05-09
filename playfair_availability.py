@@ -23,7 +23,10 @@ print("▶️ Starting Playfair availability check...")
 
 # --- STEP 1: Scrape current availability ---
 try:
-    response = requests.get(URL)
+    headers = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    }
+    response = requests.get(URL, headers=headers)
     response.raise_for_status()
 except Exception as e:
     print("❌ Failed to fetch floorplans page:", e)
