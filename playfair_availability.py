@@ -30,6 +30,10 @@ except Exception as e:
     exit(1)
 
 soup = BeautifulSoup(response.text, "html.parser")
+
+print("🧪 Page snippet:")
+print(soup.prettify()[:1000])  # Only show the first 1000 chars
+
 cards = soup.select("a.jd-fp-floorplan-card")
 
 current_state = {}
