@@ -92,6 +92,7 @@ def check_units():
     current_set = set(available_matches)
     last_set = load_last_available()
 
+
     if current_set != last_set:
         save_current_available(current_set)
 
@@ -101,11 +102,14 @@ def check_units():
             print(message)
             send_sms(message)
             send_email("Apartment Alert", message)
-            worksheet.append_row([timestamp, "Available: " + ", ".join(current_set)])
+            status_msg = "Available: " + ", ".join(current_set)
         else:
             print(f"{timestamp} — 🚫 All floorplans now unavailable.")
-            worksheet.append_row([timestamp, "No matching floorplans"])
+            status_msg = "No matching floorplans"
     else:
         print(f"{timestamp} — No change in availability.")
+        status_msg = "No change"
+
+    worksheet.append_row([timestamp, status_msg])
 
 check_units()
