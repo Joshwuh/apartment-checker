@@ -9,12 +9,14 @@ import base64
 import json
 from google.oauth2 import service_account
 import gspread
+from google.auth.transport.requests import Request  # put this with your imports
 
-# 🔐 Decode and authorize Google Sheets API
+# Decode and authorize Google Sheets API
 creds_json = base64.b64decode(os.environ['GOOGLE_CREDS_B64']).decode('utf-8')
 creds_dict = json.loads(creds_json)
 creds = service_account.Credentials.from_service_account_info(creds_dict)
-gc = gspread.authorize(creds)
+scoped_creds = creds.with_scopes(['https://www.googleapis.com/auth/spreadsheets'])
+gc = gspread.authorize(scoped_creds)
 
 spreadsheet_name = 'Apartment Checker Logs - The Seasons'
 sheet_name = 'Sheet1'
