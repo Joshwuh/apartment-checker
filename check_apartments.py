@@ -83,7 +83,7 @@ def check_units():
 
     layout_lookup = {layout['id']: layout['name'] for layout in layouts}
     available_layout_ids = {
-        unit.get('layoutId') for unit in units if unit.get('status') == 'available'
+        unit.get('layoutId') for unit in units if unit.get('status') != 'contact us'
     }
     available_names = {
         layout_lookup[layout_id] for layout_id in available_layout_ids if layout_id in layout_lookup
