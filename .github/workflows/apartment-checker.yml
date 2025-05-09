@@ -3,7 +3,7 @@ name: Apartment Availability Checker
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Every 5 minutes
+    - cron: '*/6 * * * *'  # Every 5 minutes
   workflow_dispatch:       # Manual trigger
 
 jobs:
