@@ -14,8 +14,11 @@ from google.auth.transport.requests import Request
 # Decode and authorize Google Sheets API
 creds_json = base64.b64decode(os.environ['GOOGLE_CREDS_B64']).decode('utf-8')
 creds_dict = json.loads(creds_json)
-creds = service_account.Credentials.from_service_account_info(creds_dict)
-scoped_creds = creds.with_scopes(['https://www.googleapis.com/auth/spreadsheets'])
+# creds = service_account.Credentials.from_service_account_info(creds_dict)
+scoped_creds = service_account.Credentials.from_service_account_info(
+    creds_dict,
+    scopes=['https://www.googleapis.com/auth/spreadsheets']
+)
 gc = gspread.authorize(scoped_creds)
 
 spreadsheet_name = 'Apartment Checker Logs - The Seasons'
