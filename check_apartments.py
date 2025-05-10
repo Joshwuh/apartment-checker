@@ -37,7 +37,29 @@ worksheet = gc.open_by_key('1I9wy0INtMmbH6-bjT94WV-GJR47HVBhLDvHmLhNN7rE').works
 # Knock API
 url = 'https://doorway-api.knockrentals.com/v1/property/2017805/units'
 
-floorplans_to_watch = ['Sedona', 'Stockbridge', 'Telluride', 'Washington']
+floorplans_to_watch = [
+    'Sedona'
+    , 'Stockbridge'
+    , 'Telluride'
+    , 'Washington'
+    , 'Augusta'
+    , 'Beaufort'
+    , 'Boston'
+    , 'Cambridge'
+    , 'Charleston'
+    , 'Covington'
+    , 'Flagstaff'
+    , 'Hardford'
+    , 'Jackson'
+    , 'Lexington'
+    , 'Madison'
+    , 'Nantucket'
+    , 'Nashville'
+    , 'Orleans'
+    , 'Phoenix'
+    , 'Portland'
+    , 'Raleigh'
+    ]
 
 LAST_AVAILABLE_FILE = "last_available.json"
 
